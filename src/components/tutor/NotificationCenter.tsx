@@ -127,6 +127,22 @@ export const NotificationCenter: React.FC = () => {
     }
   };
 
+  const handleSendTutorTest = () => {
+    if (!tutorSettings.telegramChatId) {
+      window.alert('Detect and save the tutor Telegram chat first.');
+      return;
+    }
+
+    sendNotification(
+      tutorSettings.tutorName || 'Tutor',
+      tutorSettings.telegramChatId,
+      'telegram',
+      'status_update',
+      'Sonia Studio Telegram Test',
+      'Telegram delivery is connected and working for tutor alerts.',
+    );
+  };
+
   return (
     <div className="space-y-6">
       
@@ -182,6 +198,13 @@ export const NotificationCenter: React.FC = () => {
               className="w-full px-3 py-2 rounded-lg bg-sky-600 text-white text-xs font-semibold hover:bg-sky-700 disabled:opacity-50"
             >
               {detectingChat ? 'Checking Telegram…' : 'Detect Latest Telegram Chat'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSendTutorTest}
+              className="w-full px-3 py-2 rounded-lg border border-sky-200 text-sky-700 text-xs font-semibold hover:bg-sky-50"
+            >
+              Send Test to Tutor
             </button>
             <p className="text-[10px] text-slate-400">
               The @username is for display only; Telegram delivery requires the numeric chat ID.

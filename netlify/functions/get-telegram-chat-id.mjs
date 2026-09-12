@@ -15,9 +15,12 @@ export default async (request) => {
   }
 
   const response = await fetch(`https://api.telegram.org/bot${token}/getUpdates?limit=20`);
-  if (!response.ok) return json({ error: 'Telegram updates could not be read.' }, 502);
+  if (!response.ok) return json({ error: `Telegram updates could not be read (HTTP ${response.status}).` }, 502);
 
   const payload = await response.json();
+  if (!payload.ok) {
+    return json({ error: payload.description || 'Telegram rejected the bot request.' }, 502);
+  }
   const updates = Array.isArray(payload.result) ? payload.result : [];
   const latestMessage = [...updates].reverse().find(update => update.message?.chat?.id);
 
