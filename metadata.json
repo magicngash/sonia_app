@@ -1,0 +1,6 @@
+{
+  "name": "Violin Studio & Student Portal",
+  "description": "Comprehensive violin studio and lesson management platform featuring student practice portal, repertoire & etude tracking, violin pitch tuner, practice metronome, scheduling calendar, and student ledgers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
