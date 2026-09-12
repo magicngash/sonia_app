@@ -12,6 +12,7 @@ import {
   Lock,
   DollarSign
 } from 'lucide-react';
+import { formatTime } from '../../utils/formatters';
 
 const DAYS_OF_WEEK = [
   { dayIndex: 1, name: 'Monday' },
@@ -306,7 +307,7 @@ export const AvailabilitySettings: React.FC = () => {
                         <span>{b.title}</span>
                       </div>
                       <p className="text-[11px] text-slate-500 mt-0.5">
-                        {b.date} • {b.startTime} - {b.endTime}
+                        {b.date} • {formatTime(b.startTime)} - {formatTime(b.endTime)}
                       </p>
                     </div>
 

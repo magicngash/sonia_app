@@ -24,6 +24,7 @@ export const NotificationCenter: React.FC = () => {
   const [savedNotice, setSavedNotice] = useState(false);
   const [selectedStudentForTest, setSelectedStudentForTest] = useState<string>(students[0]?.id || '');
   const [testSent, setTestSent] = useState(false);
+  const [detectingChat, setDetectingChat] = useState(false);
 
   const notifConfig = tutorSettings.notifications;
 
@@ -91,7 +92,8 @@ export const NotificationCenter: React.FC = () => {
     if (!targetStudent) return;
 
     const channel = notifConfig.channels[0] || 'email';
-    const contact = channel === 'telegram' && targetStudent.telegram ? targetStudent.telegram : targetStudent.email;
+    const contact = channel === 'telegram' ? targetStudent.telegramChatId : targetStudent.email;
+    if (channel === 'telegram' && !contact) return;
 
     sendNotification(
       targetStudent.name,
@@ -104,6 +106,25 @@ export const NotificationCenter: React.FC = () => {
 
     setTestSent(true);
     setTimeout(() => setTestSent(false), 3000);
+  };
+
+  const handleDetectTelegramChat = async () => {
+    setDetectingChat(true);
+    try {
+      const response = await fetch('/.netlify/functions/get-telegram-chat-id');
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Telegram detection is available after deploying to Netlify. The local Vite server does not run Netlify Functions.');
+      }
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Could not detect Telegram chat.');
+      updateTutorSettings({ telegramChatId: payload.chatId });
+      triggerSaveNotice();
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Could not detect Telegram chat.');
+    } finally {
+      setDetectingChat(false);
+    }
   };
 
   return (
@@ -134,6 +155,38 @@ export const NotificationCenter: React.FC = () => {
         
         {/* Left Column: Notification Configuration */}
         <div className="lg:col-span-6 space-y-6">
+
+          {/* Tutor Telegram Connection */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 space-y-3">
+            <div className="flex items-center space-x-2">
+              <Send className="w-4 h-4 text-sky-600" />
+              <h4 className="text-sm font-bold text-slate-900">Tutor Telegram Connection</h4>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Start a chat with your studio bot, then save the chat ID here to receive tutor alerts.
+            </p>
+            <input
+              type="text"
+              value={tutorSettings.telegramChatId || ''}
+              onChange={(e) => {
+                updateTutorSettings({ telegramChatId: e.target.value.trim() || undefined });
+                triggerSaveNotice();
+              }}
+              placeholder="Telegram chat ID, e.g. 123456789"
+              className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={handleDetectTelegramChat}
+              disabled={detectingChat}
+              className="w-full px-3 py-2 rounded-lg bg-sky-600 text-white text-xs font-semibold hover:bg-sky-700 disabled:opacity-50"
+            >
+              {detectingChat ? 'Checking Telegram…' : 'Detect Latest Telegram Chat'}
+            </button>
+            <p className="text-[10px] text-slate-400">
+              The @username is for display only; Telegram delivery requires the numeric chat ID.
+            </p>
+          </div>
           
           {/* Main Switches Card */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 space-y-4">

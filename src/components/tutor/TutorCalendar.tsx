@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LessonSession, Student } from '../../types';
+import { formatTime, formatKenyaDate } from '../../utils/formatters';
 import { 
   Calendar as CalendarIcon, 
   ChevronLeft, 
@@ -166,7 +167,7 @@ export const TutorCalendar: React.FC<TutorCalendarProps> = ({
                         }}
                         className={`px-1.5 py-0.5 rounded text-[10px] font-medium border truncate ${colors.bg} ${colors.text} ${colors.border} hover:opacity-85`}
                       >
-                        <span className="font-bold">{session.startTime}</span>
+                        <span className="font-bold">{formatTime(session.startTime)}</span>
                         {session.recurringGroupId && (
                           <Repeat className="w-2.5 h-2.5 inline mx-0.5 opacity-70" title="Recurring 3-Month Weekly Series" />
                         )}
@@ -260,7 +261,7 @@ export const TutorCalendar: React.FC<TutorCalendarProps> = ({
                         Blocked Slot
                       </div>
                       <p className="font-semibold text-slate-800 mt-0.5">{b.title}</p>
-                      <p className="text-[10px] text-slate-500">{b.startTime} - {b.endTime}</p>
+                        <p className="text-[10px] text-slate-500">{formatTime(b.startTime)} - {formatTime(b.endTime)}</p>
                     </div>
                   ))}
 
@@ -275,7 +276,7 @@ export const TutorCalendar: React.FC<TutorCalendarProps> = ({
                       >
                         <div className="flex items-center justify-between text-[11px] font-bold text-slate-900">
                           <div className="flex items-center space-x-1">
-                            <span>{session.startTime}</span>
+                            <span>{formatTime(session.startTime)}</span>
                             {session.recurringGroupId && (
                               <Repeat className="w-3 h-3 text-blue-600" title="3-Month Weekly Series" />
                             )}
@@ -360,7 +361,7 @@ export const TutorCalendar: React.FC<TutorCalendarProps> = ({
                 </div>
               </div>
               <span className="text-xs font-mono font-medium text-slate-700">
-                {b.startTime} - {b.endTime}
+                {formatTime(b.startTime)} - {formatTime(b.endTime)}
               </span>
             </div>
           ))}
@@ -380,7 +381,7 @@ export const TutorCalendar: React.FC<TutorCalendarProps> = ({
                 >
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 flex flex-col items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-bold">{session.startTime}</span>
+                      <span className="text-sm font-bold">{formatTime(session.startTime)}</span>
                       <span className="text-[10px] text-blue-600">{session.durationMinutes}m</span>
                     </div>
 

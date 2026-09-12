@@ -17,6 +17,7 @@ import {
 } from '../data/mockData';
 import { addWeeksToDate } from '../utils/availability';
 import { playNotificationChime } from '../utils/audio';
+import { formatKenyaDate, formatKenyaTime } from '../utils/formatters';
 
 interface StudentLedgerStats {
   totalSessions: number;
@@ -102,12 +103,17 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 const STORAGE_KEYS = {
-  ROLE: 'violin_studio_role_v3',
-  STUDENT_ID: 'violin_studio_student_id_v3',
-  STUDENTS: 'violin_studio_students_v3',
-  SESSIONS: 'violin_studio_sessions_v3',
-  SETTINGS: 'violin_studio_settings_v3',
-  NOTIFICATIONS: 'violin_studio_notifications_v3',
+  ROLE: 'violin_studio_role_v4',
+  STUDENT_ID: 'violin_studio_student_id_v4',
+  STUDENTS: 'violin_studio_students_v4',
+  SESSIONS: 'violin_studio_sessions_v4',
+  SETTINGS: 'violin_studio_settings_v4',
+  NOTIFICATIONS: 'violin_studio_notifications_v4',
+};
+
+const EMPTY_TUTOR_SETTINGS: TutorSettings = {
+  ...INITIAL_TUTOR_SETTINGS,
+  blockedSlots: [],
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -117,18 +123,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [currentStudentId, setCurrentStudentId] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_KEYS.STUDENT_ID) || 'stu-1';
+    return localStorage.getItem(STORAGE_KEYS.STUDENT_ID) || null;
   });
 
   // Data states
   const [students, setStudents] = useState<Student[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.STUDENTS);
-    return saved ? JSON.parse(saved) : INITIAL_STUDENTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [sessions, setSessions] = useState<LessonSession[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SESSIONS);
-    return saved ? JSON.parse(saved) : INITIAL_SESSIONS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [tutorSettings, setTutorSettings] = useState<TutorSettings>(() => {
@@ -139,17 +145,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (parsed.tutorName === 'Maestro Julian Vance' || parsed.tutorName === 'Dr. Vance') {
           parsed.tutorName = '';
         }
+        if (parsed.email === 'instructor@violinstudio.com') {
+          parsed.email = 'magicbiz2001@gmail.com';
+        }
         return parsed;
       } catch (e) {
-        return INITIAL_TUTOR_SETTINGS;
+        return EMPTY_TUTOR_SETTINGS;
       }
     }
-    return INITIAL_TUTOR_SETTINGS;
+    return EMPTY_TUTOR_SETTINGS;
   });
 
   const [notifications, setNotifications] = useState<NotificationLog[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
-    return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Sync to localStorage
@@ -208,7 +217,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addToast = (toastData: Omit<AppToast, 'id' | 'timestamp'>) => {
     const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
-    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const timestamp = formatKenyaTime(new Date(), { hour: 'numeric', minute: '2-digit' });
     const newToast: AppToast = {
       ...toastData,
       id,
@@ -273,17 +282,90 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       type,
       title,
       message,
-      sentAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' }),
+      sentAt: `${formatKenyaDate(new Date(), { month: 'short', day: 'numeric' })} ${formatKenyaTime(new Date(), { hour: 'numeric', minute: '2-digit' })}`,
       sessionId,
       status: 'delivered',
     };
     setNotifications(prev => [newLog, ...prev]);
+
+    if (channel === 'email') {
+      void fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: recipientContact,
+          recipientName,
+          title,
+          message,
+        }),
+      })
+        .then(async response => {
+          if (!response.ok) {
+            const details = await response.json().catch(() => ({}));
+            throw new Error(details.error || 'Email delivery failed.');
+          }
+          setNotifications(prev => prev.map(log =>
+            log.id === newLog.id ? { ...log, status: 'delivered' } : log
+          ));
+        })
+        .catch(error => {
+          setNotifications(prev => prev.map(log =>
+            log.id === newLog.id ? { ...log, status: 'pending' } : log
+          ));
+          notify('warning', 'Email Not Sent', error.message);
+        });
+    }
+
+    if (channel === 'telegram') {
+      void fetch('/.netlify/functions/send-telegram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chatId: recipientContact,
+          message: `*${title}*\n\n${message}`,
+        }),
+      })
+        .then(async response => {
+          if (!response.ok) {
+            const details = await response.json().catch(() => ({}));
+            throw new Error(details.error || 'Telegram delivery failed.');
+          }
+          setNotifications(prev => prev.map(log =>
+            log.id === newLog.id ? { ...log, status: 'delivered' } : log
+          ));
+        })
+        .catch(error => {
+          setNotifications(prev => prev.map(log =>
+            log.id === newLog.id ? { ...log, status: 'pending' } : log
+          ));
+          notify('warning', 'Telegram Not Sent', error.message);
+        });
+    }
+
     // Dispatch instant on-screen notification alert
     notify(
       'info',
       `${channel.toUpperCase()} Dispatched to ${recipientName}`,
       `"${title}" • Sent to ${recipientContact}`,
       5000
+    );
+  };
+
+  const sendTutorTelegram = (
+    type: NotificationLog['type'],
+    title: string,
+    message: string,
+    sessionId?: string,
+  ) => {
+    if (!tutorSettings.telegramChatId) return;
+    sendNotification(
+      tutorSettings.tutorName || 'Tutor',
+      tutorSettings.telegramChatId,
+      'telegram',
+      type,
+      title,
+      message,
+      sessionId,
     );
   };
 
@@ -310,7 +392,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const student = students.find(s => s.id === sessionData.studentId);
       if (student) {
         const channel = tutorSettings.notifications.channels[0] || 'email';
-        const contact = channel === 'telegram' && student.telegram ? student.telegram : student.email;
+        const contact = channel === 'telegram' ? student.telegramChatId : student.email;
+        if (channel === 'telegram' && !contact) {
+          notify('warning', 'Telegram Not Connected', `${student.name} has no Telegram chat ID.`);
+          return newId;
+        }
         sendNotification(
           student.name,
           contact,
@@ -322,6 +408,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         );
       }
     }
+
+    sendTutorTelegram(
+      'status_update',
+      `New Lesson Booked: ${sessionData.subject}`,
+      `${student?.name || 'Student'} is booked for ${sessionData.date} at ${sessionData.startTime}.`,
+      newId,
+    );
 
     return newId;
   };
@@ -370,7 +463,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (student) {
         const lastDate = newSessionsToAdd[newSessionsToAdd.length - 1].date;
         const channel = tutorSettings.notifications.channels[0] || 'email';
-        const contact = channel === 'telegram' && student.telegram ? student.telegram : student.email;
+        const contact = channel === 'telegram' ? student.telegramChatId : student.email;
+        if (channel === 'telegram' && !contact) return newSessionIds;
         sendNotification(
           student.name,
           contact,
@@ -439,7 +533,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const student = students.find(s => s.id === session.studentId);
     if (student) {
       const channel = tutorSettings.notifications.channels[0] || 'email';
-      const contact = channel === 'telegram' && student.telegram ? student.telegram : student.email;
+      const contact = channel === 'telegram' ? student.telegramChatId : student.email;
+      if (channel === 'telegram' && !contact) return;
       sendNotification(
         student.name,
         contact,
@@ -450,6 +545,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id
       );
     }
+
+    sendTutorTelegram(
+      'cancelled',
+      `Lesson Cancelled: ${session.subject}`,
+      `${student?.name || 'Student'}'s lesson on ${session.date} at ${session.startTime} was cancelled.`,
+      id,
+    );
   };
 
   const deleteLesson = (id: string) => {
@@ -481,7 +583,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const student = students.find(s => s.id === session.studentId);
     if (student) {
       const channel = tutorSettings.notifications.channels[0] || 'email';
-      const contact = channel === 'telegram' && student.telegram ? student.telegram : student.email;
+      const contact = channel === 'telegram' ? student.telegramChatId : student.email;
+      if (channel === 'telegram' && !contact) return;
       sendNotification(
         student.name,
         contact,
@@ -492,6 +595,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id
       );
     }
+
+    sendTutorTelegram(
+      'rescheduled',
+      `Lesson Rescheduled: ${session.subject}`,
+      `${student?.name || 'Student'}'s lesson moved to ${newDate} at ${newStartTime}.`,
+      id,
+    );
   };
 
   const toggleLessonComplete = (id: string, isCompleted: boolean, feedback?: string) => {
@@ -541,7 +651,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const student = students.find(s => s.id === session.studentId);
       if (student) {
         const channel = tutorSettings.notifications.channels[0] || 'email';
-        const contact = channel === 'telegram' && student.telegram ? student.telegram : student.email;
+        const contact = channel === 'telegram' ? student.telegramChatId : student.email;
+        if (channel === 'telegram' && !contact) return;
         sendNotification(
           student.name,
           contact,
@@ -688,11 +799,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const resetAllData = () => {
     localStorage.clear();
     setRole('tutor');
-    setCurrentStudentId('stu-1');
-    setStudents(INITIAL_STUDENTS);
-    setSessions(INITIAL_SESSIONS);
-    setTutorSettings(INITIAL_TUTOR_SETTINGS);
-    setNotifications(INITIAL_NOTIFICATIONS);
+    setCurrentStudentId(null);
+    setStudents([]);
+    setSessions([]);
+    setTutorSettings(EMPTY_TUTOR_SETTINGS);
+    setNotifications([]);
   };
 
   return (

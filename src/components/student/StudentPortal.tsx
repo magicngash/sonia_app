@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LessonSession } from '../../types';
+import { formatTime, formatKenyaDate } from '../../utils/formatters';
 import { 
   Calendar, 
   Clock, 
@@ -378,7 +379,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                   >
                     <div className="flex items-start space-x-3">
                       <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 flex flex-col items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-bold">{session.startTime}</span>
+                <span className="text-xs font-bold">{formatTime(session.startTime)}</span>
                         <span className="text-[9px] text-blue-600">{session.durationMinutes}m</span>
                       </div>
                       <div>
@@ -519,7 +520,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                   ledger.sessions.map((sess) => (
                     <tr key={sess.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">
-                        {sess.date} <span className="text-slate-400 font-normal">@{sess.startTime}</span>
+                        {sess.date} <span className="text-slate-400 font-normal">@{formatTime(sess.startTime)}</span>
                       </td>
                       <td className="px-4 py-3 text-slate-700 max-w-xs truncate">
                         <div className="flex items-center space-x-1.5">

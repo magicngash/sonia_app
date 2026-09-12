@@ -68,6 +68,7 @@ export const StudentRoster: React.FC<StudentRosterProps> = ({
     email: '',
     phone: '',
     telegram: '',
+    telegramChatId: '',
     gradeLevel: 'Intermediate',
     subject: 'Violin Solo & Technique',
     instrumentSize: '4/4 Full Size',
@@ -125,6 +126,7 @@ export const StudentRoster: React.FC<StudentRosterProps> = ({
       email: newStudent.email.trim(),
       phone: newStudent.phone.trim(),
       telegram: newStudent.telegram.trim() || undefined,
+      telegramChatId: newStudent.telegramChatId.trim() || undefined,
       gradeLevel: newStudent.gradeLevel.trim() || 'Intermediate',
       subject: newStudent.subject.trim() || 'Violin Solo & Technique',
       instrumentSize: newStudent.instrumentSize.trim() || '4/4 Full Size',
@@ -144,6 +146,7 @@ export const StudentRoster: React.FC<StudentRosterProps> = ({
       email: '',
       phone: '',
       telegram: '',
+      telegramChatId: '',
       gradeLevel: 'Intermediate',
       subject: 'Violin Solo & Technique',
       instrumentSize: '4/4 Full Size',
@@ -699,6 +702,19 @@ export const StudentRoster: React.FC<StudentRosterProps> = ({
                     onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                    Telegram Chat ID
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 123456789"
+                    value={newStudent.telegramChatId}
+                    onChange={(e) => setNewStudent({ ...newStudent, telegramChatId: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Required for real bot delivery; the @handle alone is not enough.</p>
                 </div>
               </div>
 

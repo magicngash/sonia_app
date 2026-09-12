@@ -18,6 +18,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { LessonSession } from '../../types';
+import { formatTime, formatKenyaDate } from '../../utils/formatters';
 
 interface TutorDashboardProps {
   onSelectTab: (tab: string) => void;
@@ -72,7 +73,7 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
               Admin Overview
             </span>
             <span className="text-xs text-slate-400">
-              {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              {formatKenyaDate(new Date(), { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </span>
           </div>
           <h2 className="text-2xl font-bold mt-2">
@@ -244,7 +245,7 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
                     >
                       <div className="flex items-start space-x-3">
                         <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 flex flex-col items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold">{session.startTime}</span>
+                          <span className="text-xs font-bold">{formatTime(session.startTime)}</span>
                           <span className="text-[9px] text-blue-600">{session.durationMinutes}m</span>
                         </div>
                         <div>
@@ -363,7 +364,7 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-slate-900">{student?.name}</p>
-                          <p className="text-xs text-slate-500">{session.subject} • {session.startTime}</p>
+                        <p className="text-xs text-slate-500">{session.subject} • {formatTime(session.startTime)}</p>
                         </div>
                       </div>
 

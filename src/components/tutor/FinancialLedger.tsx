@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LessonSession } from '../../types';
+import { formatTime } from '../../utils/formatters';
 import { 
   DollarSign, 
   CheckCircle2, 
@@ -270,7 +271,7 @@ export const FinancialLedger: React.FC<FinancialLedgerProps> = ({
                   <tr key={session.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="font-semibold text-slate-900">{session.date}</div>
-                      <div className="text-[11px] text-slate-500">{session.startTime}</div>
+                      <div className="text-[11px] text-slate-500">{formatTime(session.startTime)}</div>
                     </td>
 
                     <td className="px-4 py-3 whitespace-nowrap">

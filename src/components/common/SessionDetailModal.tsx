@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LessonSession } from '../../types';
+import { formatTime } from '../../utils/formatters';
 import { 
   X, 
   Calendar, 
@@ -159,7 +160,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-300">
-                {session.date} at {session.startTime} ({session.durationMinutes} minutes)
+                {session.date} at {formatTime(session.startTime)} ({session.durationMinutes} minutes)
               </p>
             </div>
           </div>

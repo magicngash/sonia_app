@@ -10,10 +10,10 @@ export function getDateOffset(days: number): string {
 export const INITIAL_TUTOR_SETTINGS: TutorSettings = {
   tutorName: '',
   tutorTitle: '',
-  email: 'instructor@violinstudio.com',
+  email: 'magicbiz2001@gmail.com',
   telegram: '@ViolinStudio',
   defaultHourlyRate: 85,
-  currency: '$',
+  currency: 'KSh ',
   concertPitch: 440,
   studioName: 'Violin Studio',
   primaryInstrument: 'Violin',

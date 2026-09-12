@@ -6,6 +6,7 @@ export interface Student {
   email: string;
   phone: string;
   telegram?: string;
+  telegramChatId?: string;
   avatar: string;
   gradeLevel: string;
   subject: string;
@@ -48,6 +49,7 @@ export interface TutorSettings {
   tutorTitle: string;
   email: string;
   telegram: string;
+  telegramChatId?: string;
   defaultHourlyRate: number;
   currency: string;
   allowStudentSelfBooking: boolean;
