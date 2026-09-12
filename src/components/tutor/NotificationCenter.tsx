@@ -89,11 +89,19 @@ export const NotificationCenter: React.FC = () => {
 
   const handleSendTestNotification = () => {
     const targetStudent = students.find(s => s.id === selectedStudentForTest);
-    if (!targetStudent) return;
+    if (!targetStudent) {
+      window.alert('Add a student profile first to test student notifications.');
+      return;
+    }
 
     const channel = notifConfig.channels[0] || 'email';
     const contact = channel === 'telegram' ? targetStudent.telegramChatId : targetStudent.email;
-    if (channel === 'telegram' && !contact) return;
+    if (!contact) {
+      window.alert(channel === 'telegram'
+        ? 'This student does not have a Telegram chat ID yet.'
+        : 'This student does not have an email address yet.');
+      return;
+    }
 
     sendNotification(
       targetStudent.name,
@@ -333,25 +341,32 @@ export const NotificationCenter: React.FC = () => {
               Test Notification Dispatcher
             </h4>
             <p className="text-xs text-slate-300">
-              Send an instant mock reminder to verify channel formatting and delivery status.
+              Send a test reminder to a selected student to verify channel formatting and delivery status.
             </p>
 
             <div className="flex items-center space-x-2 pt-1">
-              <select
-                value={selectedStudentForTest}
-                onChange={(e) => setSelectedStudentForTest(e.target.value)}
-                className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-400"
-              >
-                {students.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.telegram || s.email})
-                  </option>
-                ))}
-              </select>
+              {students.length > 0 ? (
+                <select
+                  value={selectedStudentForTest}
+                  onChange={(e) => setSelectedStudentForTest(e.target.value)}
+                  className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-400"
+                >
+                  {students.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} ({s.telegram || s.email})
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="flex-1 text-xs text-slate-300 py-1.5">
+                  Add a student profile to test student notifications.
+                </div>
+              )}
 
               <button
                 type="button"
                 onClick={handleSendTestNotification}
+                disabled={students.length === 0}
                 className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap"
               >
                 {testSent ? 'Dispatched ✓' : 'Send Test'}
