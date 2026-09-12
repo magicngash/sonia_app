@@ -651,7 +651,7 @@ export const StudentRoster: React.FC<StudentRosterProps> = ({
       {/* Add Student Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
             <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Users className="w-5 h-5 text-blue-400" />
@@ -662,7 +662,7 @@ export const StudentRoster: React.FC<StudentRosterProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleCreateStudent} className="p-6 space-y-4">
+            <form onSubmit={handleCreateStudent} className="p-6 space-y-4 overflow-y-auto">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                   Full Name *
